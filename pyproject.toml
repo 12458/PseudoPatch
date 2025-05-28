@@ -1,7 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "apply-patch"
+name = "pseudopatch"
 version = "0.1.0"
-description = "Add your description here"
+authors = [
+  { name="Shang En Sim", email="sim@shangen.org" },
+]
+description = "A utility for applying human-readable pseudo-diff patch files."
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = []
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.scripts]
+pseudopatch = "pseudopatch.cli:main"
