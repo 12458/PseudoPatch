@@ -3,7 +3,7 @@ from __future__ import annotations
 import pathlib
 from typing import Callable, Dict, List, Tuple
 
-from .domain import Commit, Patch
+from .domain import Commit, Patch, ActionType
 from .exceptions import DiffError
 from .patching import Parser, patch_to_commit
 
@@ -54,13 +54,13 @@ def apply_commit(
     remove_fn: Callable[[str], None],
 ) -> None:
     for path, change in commit.changes.items():
-        if change.type == "delete":
+        if change.type is ActionType.DELETE:
             remove_fn(path)
-        elif change.type == "add":
+        elif change.type is ActionType.ADD:
             if change.new_content is None:
                 raise DiffError(f"ADD change for {path} has no content")
             write_fn(path, change.new_content)
-        elif change.type == "update":
+        elif change.type is ActionType.UPDATE:
             if change.new_content is None:
                 raise DiffError(f"UPDATE change for {path} has no new content")
             target = change.move_path or path

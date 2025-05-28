@@ -161,19 +161,37 @@ def find_context_core(
     if not context:
         return start, 0
 
-    for i in range(start, len(lines)):
-        if lines[i: i + len(context)] == context:
+    # Handle empty files
+    if len(lines) < len(context):
+        return -1, 0
+
+    # First try direct comparison with normalized lines
+    normalized_lines = [line.lstrip() for line in lines]
+
+    # Try exact match on normalized lines
+    for i in range(start, len(lines) - len(context) + 1):
+        if normalized_lines[i:i+len(context)] == context:
             return i, 0
-    for i in range(start, len(lines)):
-        if [s.rstrip() for s in lines[i: i + len(context)]] == [
+
+    # Try with trailing whitespace differences
+    for i in range(start, len(lines) - len(context) + 1):
+        if [s.rstrip() for s in normalized_lines[i:i+len(context)]] == [
             s.rstrip() for s in context
         ]:
             return i, 1
-    for i in range(start, len(lines)):
-        if [s.strip() for s in lines[i: i + len(context)]] == [
+
+    # Try with all whitespace differences
+    for i in range(start, len(lines) - len(context) + 1):
+        if [s.strip() for s in normalized_lines[i:i+len(context)]] == [
             s.strip() for s in context
         ]:
             return i, 100
+
+    # Original matching logic (as fallback)
+    for i in range(start, len(lines) - len(context) + 1):
+        if lines[i:i+len(context)] == context:
+            return i, 0
+
     return -1, 0
 
 
@@ -229,7 +247,7 @@ def peek_next_section(
             mode = "keep"
         else:
             raise DiffError(f"Invalid Line: {s}")
-        s = s[1:]
+        s = s[1:]  # Remove prefix character
 
         if mode == "keep" and last_mode != mode:
             if ins_lines or del_lines:
@@ -248,8 +266,9 @@ def peek_next_section(
         elif mode == "add":
             ins_lines.append(s)
         elif mode == "keep":
-            old.append(s)
+            old.append(s.lstrip())  # Strip leading spaces from context lines
 
+    # Add any remaining chunks
     if ins_lines or del_lines:
         chunks.append(
             Chunk(
@@ -259,12 +278,14 @@ def peek_next_section(
             )
         )
 
+    # Check for End of File marker
     if index < len(lines) and lines[index] == "*** End of File":
         index += 1
         return old, chunks, index, True
 
     if index == orig_index:
         raise DiffError("Nothing in this section")
+
     return old, chunks, index, False
 
 
