@@ -1,6 +1,6 @@
 # PseudoPatch
 
-A pure-Python utility for applying human-readable “pseudo-diff” patch files to a collection of text files.
+A pure-Python utility for applying human-readable "pseudo-diff" patch files to a collection of text files.
 
 This library is designed for situations where the full complexity of standard `diff` and `patch` tools is unnecessary, and a simpler, more readable patch format is preferred. It is self-contained and requires no external dependencies.
 
@@ -53,7 +53,7 @@ The tool will automatically read the necessary files, apply the changes, and wri
 
 ### 2\. Library API
 
-You can import `pseudopatch` to integrate its functionality directly into your application. This gives you full control over file I/O.
+You can import pseudopatch to integrate its functionality directly into your application. This gives you full control over file I/O.
 
 The main entry point is the `pseudopatch.api.process_patch` function. It requires you to provide your own functions for reading, writing, and removing files.
 
@@ -66,9 +66,9 @@ from pseudopatch.exceptions import DiffError
 
 # --- 1. Define your patch text ---
 patch_text = """
-*** Begin Patch ***
-*** Update File: src/main.py ***
-*** Move to: src/app.py ***
+*** Begin Patch
+*** Update File: src/main.py
+*** Move to: src/app.py
 @@ import sys
 -from utils import old_helper
 +from helpers import new_helper
@@ -77,11 +77,11 @@ patch_text = """
 -    old_helper()
 +    new_helper()
      print("Done.")
-*** Add File: src/helpers.py ***
+*** Add File: src/helpers.py
 +def new_helper():
 +    print("This is the new helper function.")
-*** Delete File: src/utils.py ***
-*** End Patch ***
+*** Delete File: src/utils.py
+*** End Patch
 """
 
 # --- 2. Define your file system handlers ---
@@ -113,7 +113,7 @@ def remove_from_disk(path: str) -> None:
 try:
     print("Applying patch...")
     result = api.process_patch(
-        text=patch_text,
+        text=patch_text.strip(),
         open_fn=read_from_disk,
         write_fn=write_to_disk,
         remove_fn=remove_from_disk,
@@ -132,11 +132,11 @@ The patch file format is designed to be easy to read and write by hand.
 ### Full Example
 
 ```
-*** Begin Patch ***
+*** Begin Patch
 # Comments can be added on lines that don't start with '***', '+', '-', or ' '.
 
-*** Update File: old_name.txt ***
-*** Move to: new_name.txt ***
+*** Update File: old_name.txt
+*** Move to: new_name.txt
 @@ This is a context line that helps locate the change.
 -This line will be deleted.
 +This line will be added in its place.
@@ -144,20 +144,20 @@ The patch file format is designed to be easy to read and write by hand.
  This line remains unchanged and provides context.
 -This line is also removed.
 
-*** Add File: new_file.log ***
+*** Add File: new_file.log
 +This is the first line of the new file.
 +This is the second line.
 
-*** Delete File: obsolete.dat ***
+*** Delete File: obsolete.dat
 
-*** End Patch ***
+*** End Patch
 ```
 
 ### Syntax Breakdown
 
 #### General Structure
 
-  * Every patch must start with `*** Begin Patch ***` and end with `*** End Patch ***`.
+  * Every patch must start with `*** Begin Patch` and end with `*** End Patch`.
 
 #### File Actions
 
@@ -166,19 +166,19 @@ A patch consists of one or more file actions.
   * **Update a File:**
 
     ```
-    *** Update File: path/to/your/file.txt ***
+    *** Update File: path/to/your/file.txt
     ```
 
     This section describes changes within an existing file. It can optionally be followed by a move/rename instruction:
 
     ```
-    *** Move to: path/to/new_name.txt ***
+    *** Move to: path/to/new_name.txt
     ```
 
   * **Add a File:**
 
     ```
-    *** Add File: path/to/new/file.txt ***
+    *** Add File: path/to/new/file.txt
     ```
 
     All subsequent lines starting with `+` will form the content of this new file.
@@ -199,7 +199,7 @@ A patch consists of one or more file actions.
 
   * `-This is a deleted line.`
 
-      * Lines prefixed with `-` are removed from the file. This is only valid in an `*** Update File ***` block.
+      * Lines prefixed with `-` are removed from the file. This is only valid in an `*** Update File` block.
 
   * `  This is a context line. `
 
@@ -231,7 +231,7 @@ For each snippet of code that needs to be changed, repeat the following:
 [context_after] -> See below for further instructions on context.
 
 For instructions on [context_before] and [context_after]:
-- By default, show 3 lines of code immediately above and 3 lines immediately below each change. If a change is within 3 lines of a previous change, do NOT duplicate the first change’s [context_after] lines in the second change’s [context_before] lines.
+- By default, show 3 lines of code immediately above and 3 lines immediately below each change. If a change is within 3 lines of a previous change, do NOT duplicate the first change's [context_after] lines in the second change's [context_before] lines.
 - If 3 lines of context is insufficient to uniquely identify the snippet of code within the file, use the @@ operator to indicate the class or function to which the snippet belongs. For instance, we might have:
 @@ class BaseClass
 [3 lines of pre-context]
