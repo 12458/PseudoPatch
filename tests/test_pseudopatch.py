@@ -248,7 +248,7 @@ class TestFileOperations:
         # Create patch text
         patch_text = f"""*** Begin Patch
 *** Update File: {file1_path}
-@@ line1
+@@
  line1
 -line2
 +line2 modified
@@ -299,6 +299,50 @@ class TestErrorHandling:
 *** End Patch"""
         with pytest.raises(DiffError, match="Add File Error - file already exists"):
             text_to_patch(patch_text, {"file.txt": "existing content"})
+
+
+class TestEndToEnd:
+    def test_end_to_end_patch_create(self):
+        patch = """*** Begin Patch
+*** Add File: math_utils.py
++def add(a, b):
++    \"""
++    Returns the sum of a and b.
++    \"""
++    return a + b
++
++def multiply(a, b):
++    \"""
++    Returns the product of a and b.
++    \"""
++    return a * b
+*** End Patch
+"""
+        orig_files = {}
+        patch_obj, fuzz = text_to_patch(patch, orig_files)
+
+        assert len(patch_obj.actions) == 1
+        assert "math_utils.py" in patch_obj.actions
+        assert patch_obj.actions["math_utils.py"].type == ActionType.ADD
+        assert patch_obj.actions["math_utils.py"].new_file.startswith("def add(a, b):")
+
+        commit = patch_to_commit(patch_obj, orig_files)
+        assert len(commit.changes) == 1
+        assert commit.changes["math_utils.py"].type == ActionType.ADD
+
+        # Simulate applying the commit
+        def write_fn(path, content):
+            with open(path, 'w') as f:
+                f.write(content)
+
+        def remove_fn(path):
+            if os.path.exists(path):
+                os.remove(path)
+
+        apply_commit(commit, write_fn, remove_fn)
+
+        # Verify the file was created
+        assert Path("math_utils.py").exists()
 
 
 if __name__ == "__main__":
